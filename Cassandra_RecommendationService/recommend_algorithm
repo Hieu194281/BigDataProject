@@ -1,0 +1,181 @@
+- Dữ liệu mẫu data:
+{    
+    "product": {
+        "id": 1,
+        "sku": 1,
+        "short_description": "Đây là miêu tả ngắn gọn của sản phẩm",
+        "price": 2650000,
+        "list_price": 3190000,
+        "discount": 540000,
+        "discount_rate": 17,
+        "review_count": 50,
+        "inventory_status": "available",
+        "product_name": "",
+        "brand_id": 147856,
+        "brand_name": "Kindle",
+        "categories": {
+            "id": 1789,
+            "name": "This is name of category",
+            "is_leaf": false,
+        },
+        "rating_average": 5,
+        "images": [{
+            "base_url": "https: //salt.tikicdn.com/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+            "is_gallery": true,
+            "label": null,
+            "large_url": "https://salt.tikicdn.com/cache/w1200/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+            "medium_url": "https://salt.tikicdn.com/cache/w300/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+            "position": null,
+            "small_url": "https://salt.tikicdn.com/cache/200x280/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+            "thumbnail_url": "https://salt.tikicdn.com/cache/200x280/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png"
+        },
+        {
+            "base_url": "https://salt.tikicdn.com/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+            "is_gallery": true,
+            "label": null,
+            "large_url": "https://salt.tikicdn.com/cache/w1200/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+            "medium_url": "https://salt.tikicdn.com/cache/w300/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+            "position": null,
+            "small_url": "https://salt.tikicdn.com/cache/200x280/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+            "thumbnail_url": "https://salt.tikicdn.com/cache/200x280/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg"
+        }],
+        "thumbnail_url": "https://salt.tikicdn.com/cache/280x280/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+        "quantity_sold": 329
+    }
+}
+
+* LUỒNG DỮ LIỆU SẼ CHIA THÀNH CÁC BƯỚC:
+        1, Các api đẩy dữ liệu tương tác của người dùng vào Kafka.
+        2, Spark streaming hứng dữ liệu từ Kafka, biến đổi dữ liệu và bóc các dữ liệu cần thiết và đẩy vào Hadoop.
+        3, Spark được lập lịch để lấy dữ liệu từ Hadoop, đếm và ranking các category, gọi các sản phẩm thuộc category ấy và đẩy vào api.
+        4, Api recommendation service có nhiệm vụ nhận dữ liệu từ Spark để lưu trữ vào Cassandra, cũng như query thông tin từ Casandra ra để gợi ý.
+
+    
+    1. Dữ liệu đẩy vào có dạng:
+    {
+        "user_id": 123,
+        "products": [
+            {
+                "id": 1,
+                "sku": 1,
+                "short_description": "Đây là miêu tả ngắn gọn của sản phẩm",
+                "price": 2650000,
+                "list_price": 3190000,
+                "discount": 540000,
+                "discount_rate": 17,
+                "review_count": 50,
+                "inventory_status": "available",
+                "product_name": "",
+                "brand_id": 147856,
+                "brand_name": "Kindle",
+                "categories": {
+                    "id": 1789,
+                    "name": "This is name of category",
+                    "is_leaf": false,
+                },
+                "rating_average": 5,
+                "images": [{
+                    "base_url": "https: //salt.tikicdn.com/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                    "is_gallery": true,
+                    "label": null,
+                    "large_url": "https://salt.tikicdn.com/cache/w1200/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                    "medium_url": "https://salt.tikicdn.com/cache/w300/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                    "position": null,
+                    "small_url": "https://salt.tikicdn.com/cache/200x280/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                    "thumbnail_url": "https://salt.tikicdn.com/cache/200x280/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png"
+                },
+                {
+                    "base_url": "https://salt.tikicdn.com/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+                    "is_gallery": true,
+                    "label": null,
+                    "large_url": "https://salt.tikicdn.com/cache/w1200/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+                    "medium_url": "https://salt.tikicdn.com/cache/w300/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+                    "position": null,
+                    "small_url": "https://salt.tikicdn.com/cache/200x280/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+                    "thumbnail_url": "https://salt.tikicdn.com/cache/200x280/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg"
+                }],
+                "thumbnail_url": "https://salt.tikicdn.com/cache/280x280/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                "quantity_sold": 329
+            }
+        ],
+        "action": "view",
+        "timestamp": 1703214168
+    }
+Trong đó: user_id là id của người dùng.
+          products là một list các sản phẩm được tương tác, mẫu json một sản phẩm đã ví dụ ở dòng 1
+          action là hành vi của người dùng, chỉ bao gồm các giá trị: ["search", "view", "add_to_cart", "buy"]
+Trường hợp người dùng search dạng text, api trả về nhiều kết quả, đẩy hết tất cả sản phẩm được search ra theo phân trang như mẫu như trên
+
+    
+    2. Spark Streaming sẽ bóc tách dữ liệu được đẩy vào, lấy các thông tin:
+    ["user_id", "action", "product.id", "product.category.id", "product.category.is_leaf", "timestamp"]
+    - Nếu trường is_leaf = false thì bỏ qua product đấy.
+    - Mapping action với hệ số quan tâm như sau (đây chỉ là gợi ý):
+    [
+        "search": 1,
+        "view": 3,
+        "add_to_cart": 10,
+        "buy": 15
+    ]
+    Đẩy dữ liệu vào HDFS có gồm các field: "user_id", "product.category.id", "hệ số quan tâm", "timestamp"
+
+
+    3. Spark làm những công việc sau:
+        - Lấy dữ liệu từ hadoop ra
+        - Chỉ lấy những thông tin với timestamp từ 1 tuần trước (hoặc 1 tháng, tùy theo config và ý định của nhóm mình)
+        - Đếm tổng các số điểm của các category ứng với mỗi người dùng, và thực hiện ranking các danh sách category cho từng người dùng
+        - Lấy 2 hoặc 3 category cao nhất của từng người dùng, mỗi category ấy query tới itemService để
+         lấy thông tin 3 sản phẩm (lấy theo rating_average, quantity_sold và check inventory_status; tùy chiến lược, cái này linh hoạt được)
+        - Đẩy các sản phẩm ấy tới api recommendation với mẫu query như sau:
+        POST {địa chỉ recommendation service}/:userID
+        Body:
+            {
+                "recommend_products": [
+                    {
+                        "id": 1,
+                        "sku": 1,
+                        "short_description": "Đây là miêu tả ngắn gọn của sản phẩm",
+                        "price": 2650000,
+                        "list_price": 3190000,
+                        "discount": 540000,
+                        "discount_rate": 17,
+                        "review_count": 50,
+                        "inventory_status": "available",
+                        "product_name": "",
+                        "brand_id": 147856,
+                        "brand_name": "Kindle",
+                        "categories": {
+                            "id": 1789,
+                            "name": "This is name of category",
+                            "is_leaf": false,
+                        },
+                        "rating_average": 5,
+                        "images": [{
+                            "base_url": "https: //salt.tikicdn.com/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                            "is_gallery": true,
+                            "label": null,
+                            "large_url": "https://salt.tikicdn.com/cache/w1200/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                            "medium_url": "https://salt.tikicdn.com/cache/w300/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                            "position": null,
+                            "small_url": "https://salt.tikicdn.com/cache/200x280/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                            "thumbnail_url": "https://salt.tikicdn.com/cache/200x280/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png"
+                        },
+                        {
+                            "base_url": "https://salt.tikicdn.com/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+                            "is_gallery": true,
+                            "label": null,
+                            "large_url": "https://salt.tikicdn.com/cache/w1200/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+                            "medium_url": "https://salt.tikicdn.com/cache/w300/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+                            "position": null,
+                            "small_url": "https://salt.tikicdn.com/cache/200x280/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg",
+                            "thumbnail_url": "https://salt.tikicdn.com/cache/200x280/ts/product/19/ce/b4/6942d2bbeb82850556c2993237974b0a.jpg"
+                        }],
+                        "thumbnail_url": "https://salt.tikicdn.com/cache/280x280/ts/product/44/ba/3c/31b5a0b56c724d6a14bcf24b30500873.png",
+                        "quantity_sold": 329
+                    }
+                ]
+            }
+
+    
+    4. Api recommendation với endpoint lấy danh sách sản phẩm gợi ý theo từng người dùng như sau:
+        GET {địa chỉ recommendation service}/:userID

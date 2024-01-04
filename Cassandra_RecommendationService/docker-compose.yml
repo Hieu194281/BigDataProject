@@ -1,0 +1,79 @@
+version: "2"
+
+# make sure that docker machine has enough memory to run the cluster.
+# setting it up to 4GB seems to work.
+
+# after all nodes in cassandra cluster are active, run this command in powershell or git bash
+# docker run --rm --network cassandra -v "$(pwd)/data.cql:/scripts/data.cql" -e CQLSH_HOST=cassandra_node_1 -e CQLSH_PORT=9042 -e CQLVERSION=3.4.7 nuvo/docker-cqlsh
+
+services:
+
+  cassandra-1:
+    image: cassandra:5.0
+    container_name: cassandra_node_1
+    ports:
+      - "9042:9042"
+    volumes:
+      - "cassandra_data_1:/var/lib/cassandra"
+    environment:
+      - "CASSANDRA_SEEDS=cassandra-1"
+      - "CASSANDRA_CLUSTER_NAME=cassandra-recommendation-cluster"
+  #      needed for setting up custom cluster name
+      - "CASSANDRA_DC=se1"
+      - "CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch"
+    networks:
+      - cassandra
+  #    restart: always
+
+  recommendation_service:
+    # build: .
+    image: recommendation_service:1.0
+    container_name: recommendation_service
+    ports:
+      - 8080:8080
+    volumes:
+      - ./config.env:/opt/recommendation/config.env
+    networks:
+      - cassandra
+    depends_on:
+      - cassandra-1
+    restart: unless-stopped
+
+#   cassandra-2:
+#     image: cassandra:5.0
+#     container_name: cassandra_node_2
+#     volumes:
+#       - "cassandra_data_2:/var/lib/cassandra"
+#     environment:
+#       - "CASSANDRA_SEEDS=cassandra-1,cassandra-2,cassandra-3"
+#       - "CASSANDRA_CLUSTER_NAME=cassandra-recommendation-cluster"
+# #      needed for setting up custom cluster name
+#       - "CASSANDRA_DC=se1"
+#       - "CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch"
+#     networks:
+#       - cassandra
+# #    restart: always
+
+#   cassandra-3:
+#     image: cassandra:5.0
+#     container_name: cassandra_node_3
+#     volumes:
+#       - "cassandra_data_3:/var/lib/cassandra"
+#     environment:
+#       - "CASSANDRA_SEEDS=cassandra-1,cassandra-2,cassandra-3"
+#       - "CASSANDRA_CLUSTER_NAME=cassandra-recommendation-cluster"
+# #      needed for setting up custom cluster name
+#       - "CASSANDRA_DC=se1"
+#       - "CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch"
+#     networks:
+#       - cassandra
+# #    restart: always
+
+volumes:
+  cassandra_data_1:
+  # cassandra_data_2:
+  # cassandra_data_3:
+
+networks:
+  cassandra:
+    external: true
