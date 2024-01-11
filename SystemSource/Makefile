@@ -25,6 +25,9 @@ run:
 run-scaled:
 	make down && docker-compose up --scale spark-worker=3
 
+run-scaled-2:
+	make down && docker-compose up --scale spark-worker=2
+
 run-d:
 	make down && docker-compose up -d
 

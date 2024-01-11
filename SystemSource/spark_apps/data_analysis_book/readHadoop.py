@@ -8,7 +8,7 @@ import json
 # Initialize SparkSession with Hadoop configurations
 spark = SparkSession.builder \
     .appName("ReadFromHDFS") \
-    .config("fs.defaultFS", "hdfs://842162069fd0:8020") \
+    .config("fs.defaultFS", "hdfs://1aebc5323a6c:8020") \
     .getOrCreate()
 input_folder = '/product/'
 
@@ -43,7 +43,7 @@ for row in rows:
         # Get candidated recommended products in a category
         params = {
             "limit" : 3,
-            "sort" : 'ctime',
+            "sort" : '-rating_average',
             "category" : category_id
         }
         res = requests.get(f"http://192.168.1.160:3052/api/v1/product/", params=params)
@@ -60,7 +60,7 @@ for row in rows:
     print(recommended_products)
 
     # Store infomation in persistent data-store (Cassandra)
-    res = requests.post(url=f"http://192.168.1.160:8080/{user_id}", json=body)
+    # res = requests.post(url=f"http://192.168.1.195:8080/{user_id}", json=body)
     print(f"Updating a recommended product list to user {user_id} with status_code: {res.status_code}")
 
 

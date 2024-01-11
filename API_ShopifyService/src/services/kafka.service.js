@@ -3,7 +3,7 @@ const { Kafka } = require('kafkajs');
 class KafkaService {
   static kafka = new Kafka({
     clientId: 'my-app',
-    brokers: ['localhost:29092'],
+    brokers: ['localhost:29092', 'localhost:29093'],
   });
 
   static producer = this.kafka.producer();

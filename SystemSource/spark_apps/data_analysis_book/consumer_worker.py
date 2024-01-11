@@ -68,11 +68,11 @@ def write_to_hdfs(needed_information):
     except Exception as e: 
         print(f'Error when writing to HDFS: {e}')
 
-if(not topic_exists('localhost:29092', 'product')): 
-    create_topic('localhost:29092', 'product', 4)
+if(not topic_exists('localhost:29092,localhost:29093', 'product')): 
+    create_topic('localhost:29092,localhost:29093', 'product', 4, 2)
 
 c = Consumer({
-    'bootstrap.servers': 'localhost:29092',
+    'bootstrap.servers': 'localhost:29092,localhost:29093',
     'group.id': 'mygroup',
     'auto.offset.reset': 'earliest',
     'enable.auto.commit': True
